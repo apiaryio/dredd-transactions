@@ -60,8 +60,8 @@ dt.compile('# My API\n...', 'apiary.apib', function (error, compilationResult) {
 
 ### Arguments
 
-- (string) - API Description Document provided as string.
-- (string) - Original file name of the API Description Document. **Soon to be deprecated! See [#6][filename-deprecation]**
+- (string) - API description document provided as string.
+- (string) - Original file name of the API description document. **Soon to be deprecated! See [#6][filename-deprecation]**
 - (function) - Callback.
 
 ### Callback Arguments
