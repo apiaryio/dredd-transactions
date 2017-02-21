@@ -248,3 +248,31 @@ describe 'validateParameters', ->
         result = validateParameters params
         assert.equal result['errors'].length, 0
 
+
+    describe 'when type is boolean and example value is false', () ->
+      it 'should not set the error', () ->
+        params =
+          name:
+            description: 'Machine name'
+            type: 'boolean'
+            required: true
+            example: 'false'
+            default: ''
+            values: []
+
+        result = validateParameters params
+        assert.equal result['errors'].length, 0
+
+    describe 'when type is boolean and default value is parseable bool and example value is empty', () ->
+      it 'should not set the error', () ->
+        params =
+          name:
+            description: 'Machine name'
+            type: 'boolean'
+            required: true
+            example: ''
+            default: 'false'
+            values: []
+
+        result = validateParameters params
+        assert.equal result['errors'].length, 1
