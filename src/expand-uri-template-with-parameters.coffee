@@ -41,9 +41,9 @@ expandUriTemplateWithParameters = (uriTemplate, parameters) ->
       for uriParameter in uriParameters
         param = parameters[uriParameter]
 
-        if param.example
+        if param.example? and param.example isnt ''
           toExpand[uriParameter] = param.example
-        else if param.default
+        else if param.default? and param.default isnt ''
           toExpand[uriParameter] = param.default
         else
           if param.required
@@ -54,7 +54,7 @@ expandUriTemplateWithParameters = (uriTemplate, parameters) ->
               document: #{uriParameter}\
             """)
 
-        if param.required and param.default
+        if param.required and param.default? and param.default isnt ''
           result.warnings.push("""\
             Required URI parameter '#{uriParameter}' has a default value.
             Default value for a required parameter doesn't make sense from \
