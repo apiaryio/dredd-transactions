@@ -355,3 +355,48 @@ describe 'expandUriTemplateWithParameters', ->
 
           it 'should return some URI', ->
             assert.isNotNull data['uri']
+
+
+        describe 'when example value are not given', ->
+          before ->
+            uriTemplate = '/machines/{name}'
+            parameters =
+              name:
+                description: 'Machine name'
+                type: 'boolean'
+                required: true
+                default: false
+                example: ''
+
+            data = expandUriTemplateWithParameters uriTemplate, parameters
+
+          it 'should return no error', ->
+            assert.equal data['errors'].length, 0
+
+          it 'should return 1 warning', ->
+            assert.equal data['warnings'].length, 1
+
+          it 'should return some URI', ->
+            assert.isNotNull data['uri']
+
+        describe 'when default values are not given', ->
+          before ->
+            uriTemplate = '/machines/{name}'
+            parameters =
+              name:
+                description: 'Machine name'
+                type: 'boolean'
+                required: true
+                default: ''
+                example: false
+
+            data = expandUriTemplateWithParameters uriTemplate, parameters
+
+          it 'should return no error', ->
+            assert.equal data['errors'].length, 0
+
+          it 'should return no warning', ->
+            assert.equal data['warnings'].length, 0
+
+          it 'should return some URI', ->
+            assert.isNotNull data['uri']
