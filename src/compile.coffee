@@ -1,4 +1,3 @@
-
 clone = require('clone')
 caseless = require('caseless')
 
@@ -6,9 +5,12 @@ caseless = require('caseless')
 validateParameters = require('./validate-parameters')
 detectTransactionExamples = require('./detect-transaction-examples')
 expandUriTemplateWithParameters = require('./expand-uri-template-with-parameters')
+apiElementsToJson = require('./api-elements-to-json')
 
 
-compile = (mediaType, parseResult, filename) ->
+compile = (mediaType, apiElements, filename) ->
+  parseResult = apiElementsToJson(apiElements)
+
   transactions = []
   errors = []
   warnings = []
