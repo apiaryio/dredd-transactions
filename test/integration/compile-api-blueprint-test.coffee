@@ -6,6 +6,7 @@ fixtures = require('../fixtures')
 createLocationSchema = require('../schemas/location')
 createOriginSchema = require('../schemas/origin')
 {assert, compileFixture} = require('../utils')
+apiElementsToJson = require('../../src/api-elements-to-json')
 
 
 describe('compile() · API Blueprint', ->
@@ -17,9 +18,10 @@ describe('compile() · API Blueprint', ->
     transactions = undefined
 
     beforeEach((done) ->
-      compileFixture(fixtures.missingTitleAnnotation.apiBlueprint, (args...) ->
-        [err, {warnings, transactions}] = args
-        done(err)
+      compileFixture(fixtures.missingTitleAnnotation.apiBlueprint, (err, results) ->
+        return done(err) if err
+        {warnings, transactions} = results
+        done()
       )
     )
 
@@ -56,9 +58,10 @@ describe('compile() · API Blueprint', ->
     transactions = undefined
 
     beforeEach((done) ->
-      compileFixture(fixtures.notSpecifiedInUriTemplateAnnotation.apiBlueprint, (args...) ->
-        [err, {warnings, transactions}] = args
-        done(err)
+      compileFixture(fixtures.notSpecifiedInUriTemplateAnnotation.apiBlueprint, (err, results) ->
+        return done(err) if err
+        {warnings, transactions} = results
+        done()
       )
     )
 
@@ -100,10 +103,10 @@ describe('compile() · API Blueprint', ->
     beforeEach((done) ->
       stubs = {'./detect-transaction-examples': detectTransactionExamples}
 
-      compileFixture(fixtures.multipleTransactionExamples.apiBlueprint, {stubs}, (args...) ->
-        [err, compilationResult] = args
-        transactions = compilationResult.transactions
-        done(err)
+      compileFixture(fixtures.multipleTransactionExamples.apiBlueprint, {stubs}, (err, results) ->
+        return done(err) if err
+        {transactions} = results
+        done()
       )
     )
 
@@ -141,15 +144,14 @@ describe('compile() · API Blueprint', ->
 
   describe('without multiple transaction examples', ->
     detectTransactionExamples = sinon.spy(require('../../src/detect-transaction-examples'))
-    compilationResult = undefined
-    transaction = undefined
+    transactions = undefined
 
     beforeEach((done) ->
       stubs = {'./detect-transaction-examples': detectTransactionExamples}
 
-      compileFixture(fixtures.oneTransactionExample.apiBlueprint, {stubs}, (args...) ->
-        [err, compilationResult] = args
-        transaction = compilationResult.transactions[0]
+      compileFixture(fixtures.oneTransactionExample.apiBlueprint, {stubs}, (err, results) ->
+        return done(err) if err
+        {transactions} = results
         done(err)
       )
     )
@@ -158,14 +160,14 @@ describe('compile() · API Blueprint', ->
       assert.isTrue(detectTransactionExamples.called)
     )
     it('is compiled into one transaction', ->
-      assert.equal(compilationResult.transactions.length, 1)
+      assert.equal(transactions.length, 1)
     )
     context('the transaction', ->
       it("is identified as part of no example in \'origin\'", ->
-        assert.equal(transaction.origin.exampleName, '')
+        assert.equal(transactions[0].origin.exampleName, '')
       )
       it("is identified as part of Example 1 in \'pathOrigin\'", ->
-        assert.equal(transaction.pathOrigin.exampleName, 'Example 1')
+        assert.equal(transactions[0].pathOrigin.exampleName, 'Example 1')
       )
     )
   )
@@ -176,10 +178,10 @@ describe('compile() · API Blueprint', ->
     filename = 'apiDescription.apib'
 
     beforeEach((done) ->
-      compileFixture(fixtures.arbitraryAction.apiBlueprint, {filename}, (args...) ->
-        [err, compilationResult] = args
-        [transaction0, transaction1] = compilationResult.transactions
-        done(err)
+      compileFixture(fixtures.arbitraryAction.apiBlueprint, {filename}, (err, results) ->
+        return done(err) if err
+        [transaction0, transaction1] = results.transactions
+        done()
       )
     )
 
@@ -207,10 +209,10 @@ describe('compile() · API Blueprint', ->
     filename = 'apiDescription.apib'
 
     beforeEach((done) ->
-      compileFixture(fixtures.withoutSections.apiBlueprint, {filename}, (args...) ->
-        [err, compilationResult] = args
-        transaction = compilationResult.transactions[0]
-        done(err)
+      compileFixture(fixtures.withoutSections.apiBlueprint, {filename}, (err, results) ->
+        return done(err) if err
+        transaction = results.transactions[0]
+        done()
       )
     )
 
@@ -249,10 +251,10 @@ describe('compile() · API Blueprint', ->
     transaction = undefined
 
     beforeEach((done) ->
-      compileFixture(fixtures.preferSample.apiBlueprint, (args...) ->
-        [err, compilationResult] = args
-        transaction = compilationResult.transactions[0]
-        done(err)
+      compileFixture(fixtures.preferSample.apiBlueprint, (err, results) ->
+        return done(err) if err
+        transaction = results.transactions[0]
+        done()
       )
     )
 
