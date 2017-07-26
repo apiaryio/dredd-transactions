@@ -25,7 +25,7 @@ describe 'validateParameters', ->
           type: 'string'
           required: true
           example: '1.1'
-          default: ''
+          default: null
           values: []
 
       result = validateParameters params
@@ -42,7 +42,7 @@ describe 'validateParameters', ->
           type: 'string'
           required: true
           example: '6f7c1245'
-          default: ''
+          default: null
           values: []
 
       result = validateParameters params
@@ -55,7 +55,7 @@ describe 'validateParameters', ->
           type: 'string'
           required: true
           example: 'waldo'
-          default: ''
+          default: null
           values: []
 
       result = validateParameters params
@@ -69,7 +69,7 @@ describe 'validateParameters', ->
           type: 'number'
           required: true
           example: 'waldo'
-          default: ''
+          default: null
           values: []
 
       result = validateParameters params
@@ -85,7 +85,7 @@ describe 'validateParameters', ->
           type: 'number'
           required: true
           example: '1.1'
-          default: ''
+          default: null
           values: []
 
       result = validateParameters params
@@ -99,7 +99,7 @@ describe 'validateParameters', ->
           type: 'string'
           required: true
           example: 'D'
-          default: ''
+          default: null
           values: [
             { "value": "A" },
             { "value": "B" },
@@ -119,7 +119,7 @@ describe 'validateParameters', ->
           type: 'string'
           required: true
           example: 'A'
-          default: ''
+          default: null
           values: [
             { "value": "A" },
             { "value": "B" },
@@ -137,7 +137,7 @@ describe 'validateParameters', ->
           type: 'boolean'
           required: true
           example: 'booboo'
-          default: ''
+          default: null
           values: []
 
       result = validateParameters params
@@ -153,15 +153,15 @@ describe 'validateParameters', ->
           type: 'boolean'
           required: true
           example: 'true'
-          default: ''
+          default: null
           values: []
 
       result = validateParameters params
       assert.equal result['errors'].length, 0
 
   describe 'when parameter is required', () ->
-    describe 'and example and default value are empty', () ->
-      it 'should set descirptive error', () ->
+    describe 'and example and default value are empty strings', () ->
+      it 'should not set the error', () ->
         params =
           name:
             description: 'Machine name'
@@ -169,6 +169,64 @@ describe 'validateParameters', ->
             required: true
             example: ''
             default: ''
+            values: []
+
+        result = validateParameters params
+        assert.equal result['errors'].length, 0
+
+    describe 'and example is empty string and default value is null', () ->
+      it 'should not set the error', () ->
+        params =
+          name:
+            description: 'Machine name'
+            type: 'string'
+            required: true
+            example: ''
+            default: null
+            values: []
+
+        result = validateParameters params
+        assert.equal result['errors'].length, 0
+
+    describe 'and example is null and default value is empty string', () ->
+      it 'should not set the error', () ->
+        params =
+          name:
+            description: 'Machine name'
+            type: 'string'
+            required: true
+            example: null
+            default: ''
+            values: []
+
+        result = validateParameters params
+        assert.equal result['errors'].length, 0
+
+    describe 'and example and default value are null', () ->
+      it 'should set descirptive error', () ->
+        params =
+          name:
+            description: 'Machine name'
+            type: 'string'
+            required: true
+            example: null
+            default: null
+            values: []
+
+        result = validateParameters params
+        message = result['errors'][0]
+        assert.include message, 'name'
+        assert.include message, 'Required'
+
+    describe 'and example and default value are undefined', () ->
+      it 'should set descirptive error', () ->
+        params =
+          name:
+            description: 'Machine name'
+            type: 'string'
+            required: true
+            example: undefined
+            default: undefined
             values: []
 
         result = validateParameters params
@@ -183,7 +241,7 @@ describe 'validateParameters', ->
             description: 'Machine name'
             type: 'string'
             required: true
-            example: ''
+            example: null
             default: 'bagaboo'
             values: []
 
@@ -198,7 +256,7 @@ describe 'validateParameters', ->
             type: 'string'
             required: true
             example: 'booboo'
-            default: ''
+            default: null
             values: []
 
         result = validateParameters params
@@ -206,14 +264,14 @@ describe 'validateParameters', ->
 
   describe 'when parameter is not required', () ->
     describe 'and example and default value are empty', () ->
-      it 'should not set descirptive error', ->
+      it 'should not set the error', ->
         params =
           name:
             description: 'Machine name'
             type: 'string'
             required: false
-            example: ''
-            default: ''
+            example: null
+            default: null
             values: []
 
         result = validateParameters params
@@ -227,7 +285,7 @@ describe 'validateParameters', ->
             description: 'Machine name'
             type: 'string'
             required: true
-            example: ''
+            example: null
             default: 'bagaboo'
             values: []
 
@@ -242,9 +300,69 @@ describe 'validateParameters', ->
             type: 'string'
             required: true
             example: 'booboo'
-            default: ''
+            default: null
             values: []
 
         result = validateParameters params
         assert.equal result['errors'].length, 0
 
+
+    describe 'when type is boolean and example value is false', () ->
+      it 'should not set the error', () ->
+        params =
+          name:
+            description: 'Machine name'
+            type: 'boolean'
+            required: true
+            example: 'false'
+            default: null
+            values: []
+
+        result = validateParameters params
+        assert.equal result['errors'].length, 0
+
+    describe 'when type is boolean and default value is parseable bool and example value is empty string', () ->
+      it 'should set descirptive error', () ->
+        params =
+          name:
+            description: 'Machine name'
+            type: 'boolean'
+            required: true
+            example: ''
+            default: 'false'
+            values: []
+
+        result = validateParameters params
+        message = result['errors'][0]
+        assert.include message, 'name'
+        assert.include message, 'boolean'
+
+    describe 'when type is boolean and default value is parseable bool and example value is empty', () ->
+      it 'should not set the error', () ->
+        params =
+          name:
+            description: 'Machine name'
+            type: 'boolean'
+            required: true
+            example: null
+            default: 'false'
+            values: []
+
+        result = validateParameters params
+        assert.equal result['errors'].length, 0
+
+    describe 'when type is boolean and default value is not parseable bool and example value is empty', () ->
+      it 'should not set the error', () ->
+        params =
+          name:
+            description: 'Machine name'
+            type: 'boolean'
+            required: true
+            example: null
+            default: 'booooo'
+            values: []
+
+        result = validateParameters params
+        message = result['errors'][0]
+        assert.include message, 'name'
+        assert.include message, 'boolean'

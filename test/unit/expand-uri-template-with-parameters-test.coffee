@@ -15,14 +15,14 @@ describe 'expandUriTemplateWithParameters', ->
         type: 'string'
         required: true
         example: 'waldo'
-        default: ''
+        default: null
 
     data = expandUriTemplateWithParameters uriTemplate, parameters
 
   it 'should return an object', ->
     assert.isObject data
 
-  describe 'returned obejct', ->
+  describe 'returned object', ->
     [
       'errors'
       'warnings'
@@ -40,7 +40,7 @@ describe 'expandUriTemplateWithParameters', ->
             type: 'string'
             required: true
             example: 'waldo'
-            default: ''
+            default: null
 
         data = expandUriTemplateWithParameters uriTemplate, parameters
 
@@ -74,7 +74,7 @@ describe 'expandUriTemplateWithParameters', ->
               type: 'string'
               required: true
               example: 'waldo'
-              default: ''
+              default: null
 
           data = expandUriTemplateWithParameters uriTemplate, parameters
 
@@ -124,14 +124,14 @@ describe 'expandUriTemplateWithParameters', ->
               type: 'string'
               required: true
               example: 'waldo'
-              default: ''
+              default: null
             fanny:
               required: false
               description: 'Machine fanny'
               type: 'string'
               required: true
               example: 'wild'
-              default: ''
+              default: null
 
           data = expandUriTemplateWithParameters uriTemplate, parameters
 
@@ -155,8 +155,8 @@ describe 'expandUriTemplateWithParameters', ->
                 description: 'Machine name'
                 type: 'string'
                 required: true
-                example: ''
-                default: ''
+                example: null
+                default: null
 
             data = expandUriTemplateWithParameters uriTemplate, parameters
 
@@ -187,7 +187,32 @@ describe 'expandUriTemplateWithParameters', ->
                 type: 'string'
                 required: true
                 example: 'example-one'
-                default: ''
+                default: null
+
+            data = expandUriTemplateWithParameters uriTemplate, parameters
+
+          it 'should return no error', ->
+            assert.equal data['errors'].length, 0
+
+          it 'should return no warning', ->
+            assert.equal data['warnings'].length, 0
+
+          it 'should use example value to URI parameter expansion', ->
+            assert.include data['uri'], parameters['name']['example']
+
+          it 'should return URI', ->
+            assert.isNotNull data['uri']
+
+        describe 'when example value is given as empty string', ->
+          before ->
+            uriTemplate = '/machines/{name}'
+            parameters =
+              name:
+                description: 'Machine name'
+                type: 'string'
+                required: true
+                example: ''
+                default: null
 
             data = expandUriTemplateWithParameters uriTemplate, parameters
 
@@ -211,7 +236,7 @@ describe 'expandUriTemplateWithParameters', ->
                 description: 'Machine name'
                 type: 'string'
                 required: true
-                example: ''
+                example: null
                 default: 'example-one'
 
             data = expandUriTemplateWithParameters uriTemplate, parameters
@@ -221,6 +246,31 @@ describe 'expandUriTemplateWithParameters', ->
 
           it 'should return one warning', ->
             assert.equal data['warnings'].length, 1
+
+          it 'should return warning about pointlessness of default value of a required parameter', ->
+            assert.include data.warnings[0], 'Default value for a required parameter'
+
+          it 'should use default value to URI parameter expansion', ->
+            assert.include data['uri'], parameters['name']['default']
+
+          it 'should return URI', ->
+            assert.isNotNull data['uri']
+
+        describe 'when default value is given as empty string', ->
+          before ->
+            uriTemplate = '/machines/{name}'
+            parameters =
+              name:
+                description: 'Machine name'
+                type: 'string'
+                required: true
+                example: null
+                default: ''
+
+            data = expandUriTemplateWithParameters uriTemplate, parameters
+
+          it 'should return no error', ->
+            assert.equal data['errors'].length, 0
 
           it 'should return warning about pointlessness of default value of a required parameter', ->
             assert.include data.warnings[0], 'Default value for a required parameter'
@@ -259,6 +309,34 @@ describe 'expandUriTemplateWithParameters', ->
           it 'should return URI', ->
             assert.isNotNull data['uri']
 
+      describe 'when example is given as empty string and default is given as non-empty string', ->
+          before ->
+            uriTemplate = '/machines/{name}'
+            parameters =
+              name:
+                description: 'Machine name'
+                type: 'string'
+                required: true
+                example: ''
+                default: 'default-one'
+
+            data = expandUriTemplateWithParameters uriTemplate, parameters
+
+          it 'should return no error', ->
+            assert.equal data['errors'].length, 0
+
+          it 'should return one warning', ->
+            assert.equal data['warnings'].length, 1
+
+          it 'should return warning about pointlessness of default value of a required parameter', ->
+            assert.include data.warnings[0], 'Default value for a required parameter'
+
+          it 'should use example value to URI parameter expansion', ->
+            assert.include data['uri'], parameters['name']['example']
+
+          it 'should return URI', ->
+            assert.isNotNull data['uri']
+
       describe 'when expression parameter is optional', ->
         before ->
           uriTemplate = '/machines/{name}'
@@ -268,7 +346,7 @@ describe 'expandUriTemplateWithParameters', ->
               type: 'string'
               required: false
               example: 'example-one'
-              default: ''
+              default: null
 
           data = expandUriTemplateWithParameters uriTemplate, parameters
 
@@ -293,7 +371,7 @@ describe 'expandUriTemplateWithParameters', ->
                 type: 'string'
                 required: false
                 default: 'default-one'
-                example: ''
+                example: null
 
             data = expandUriTemplateWithParameters uriTemplate, parameters
 
@@ -305,6 +383,31 @@ describe 'expandUriTemplateWithParameters', ->
 
           it 'should use default value to URI parameter expansion', ->
             assert.include data['uri'], parameters['name']['default']
+
+          it 'should return URI', ->
+            assert.isNotNull data['uri']
+
+        describe 'when default value is given and example is empty string', ->
+          before ->
+            uriTemplate = '/machines/{name}'
+            parameters =
+              name:
+                description: 'Machine name'
+                type: 'string'
+                required: false
+                default: 'default-one'
+                example: ''
+
+            data = expandUriTemplateWithParameters uriTemplate, parameters
+
+          it 'should return no error', ->
+            assert.equal data['errors'].length, 0
+
+          it 'should return no warning', ->
+            assert.equal data['warnings'].length, 0
+
+          it 'should use example value to URI parameter expansion', ->
+            assert.include data['uri'], parameters['name']['example']
 
           it 'should return URI', ->
             assert.isNotNull data['uri']
@@ -342,8 +445,53 @@ describe 'expandUriTemplateWithParameters', ->
                 description: 'Machine name'
                 type: 'string'
                 required: false
-                default: ''
-                example: ''
+                default: null
+                example: null
+
+            data = expandUriTemplateWithParameters uriTemplate, parameters
+
+          it 'should return no error', ->
+            assert.equal data['errors'].length, 0
+
+          it 'should return no warning', ->
+            assert.equal data['warnings'].length, 0
+
+          it 'should return some URI', ->
+            assert.isNotNull data['uri']
+
+
+        describe 'when boolean example value is not given', ->
+          before ->
+            uriTemplate = '/machines/{name}'
+            parameters =
+              name:
+                description: 'Machine name'
+                type: 'boolean'
+                required: true
+                default: false
+                example: null
+
+            data = expandUriTemplateWithParameters uriTemplate, parameters
+
+          it 'should return no error', ->
+            assert.equal data['errors'].length, 0
+
+          it 'should return 1 warning', ->
+            assert.equal data['warnings'].length, 1
+
+          it 'should return some URI', ->
+            assert.isNotNull data['uri']
+
+        describe 'when boolean default value is not given', ->
+          before ->
+            uriTemplate = '/machines/{name}'
+            parameters =
+              name:
+                description: 'Machine name'
+                type: 'boolean'
+                required: true
+                default: null
+                example: false
 
             data = expandUriTemplateWithParameters uriTemplate, parameters
 
