@@ -3,7 +3,7 @@ caseless = require('caseless')
 
 {child, children, parent, content} = require('./refract')
 detectTransactionExamples = require('./detect-transaction-examples')
-apiElementsToRefract = require('./api-elements-to-refract')
+{serialize} = require('./refract-serialization')
 compileUri = require('./compile-uri')
 
 
@@ -16,7 +16,7 @@ compile = (mediaType, apiElements, filename) ->
   #
   # Before this line, the code supports API Elements and minim. After this
   # line, the code works with raw JS object representation of the API Elements.
-  refract = apiElementsToRefract(apiElements)
+  refract = serialize(apiElements)
 
   for relevantTransaction in findRelevantTransactions(mediaType, refract, apiElements)
     refractHttpTransaction = relevantTransaction.refract
@@ -117,7 +117,7 @@ findRelevantTransactions = (mediaType, refract, apiElements) ->
 # Returns an array of numbers, where indexes correspond to HTTP transactions
 # within the transition and values represent the example numbers.
 detectExampleNumbersPerTransaction = (transitionElement) ->
-  tempRefractTransition = apiElementsToRefract(transitionElement)
+  tempRefractTransition = serialize(transitionElement)
   tempRefractHttpTransactions = children(tempRefractTransition, {element: 'httpTransaction'})
 
   detectTransactionExamples(tempRefractTransition)

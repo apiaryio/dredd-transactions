@@ -1,33 +1,51 @@
-fury = require('fury')
-
-{content} = require('../refract')
+{deserialize} = require('../refract-serialization')
 
 
-module.exports = (hrefVariables) ->
-  parameters = {}
+module.exports = (hrefVariablesElement) ->
+  params = {}
+  return params unless hrefVariablesElement
 
-  for member in content(hrefVariables) or []
-    {key, value} = content(member)
+  hrefVariablesElement.forEach((valueElement, keyElement, memberElement) ->
+    name = keyElement.toValue()
+    params[name] =
+      required: isRequired(memberElement)
+      default: getDefaultValue(valueElement)
+      example: getExampleValue(valueElement)
+      values: getValues(valueElement)
+  )
+  return params
 
-    name = content(key)
-    types = (content(member.attributes?.typeAttributes) or [])
 
-    if value?.element is 'enum'
-      if value.attributes?.samples?.length and value.attributes?.samples[0].length
-        exampleValue = content(value.attributes.samples[0][0])
-      else
-        exampleValue = content(content(value)[0])
-      if value.attributes?.default?.length
-        defaultValue = content(value.attributes.default[0])
-    else
-      exampleValue = content(value)
-      if value.attributes?.default
-        defaultValue = content(value.attributes?.default)
+isRequired = (memberElement) ->
+  attributesElement = memberElement.attributes
+  return false unless attributesElement
+  typeAttributesElement = attributesElement.get('typeAttributes')
+  return false unless typeAttributesElement
+  return typeAttributesElement.contains('required')
 
-    parameters[name] =
-      required: 'required' in types
-      default: defaultValue
-      example: exampleValue
-      values: if value?.element is 'enum' then ({value: content(v)} for v in content(value)) else []
 
-  parameters
+getExampleValue = (valueElement) ->
+  value = valueElement.toValue()
+  return value unless valueElement.element is 'enum'
+
+  return undefined unless valueElement.attributes
+  attributes = valueElement.attributes.toValue()
+
+  try
+    return attributes.samples[0][0]
+  catch
+    return value[0]
+
+
+getDefaultValue = (valueElement) ->
+  return undefined unless valueElement.attributes
+  attributes = valueElement.attributes.toValue()
+
+  if valueElement is 'enum' and attributes.default and attributes.default.length
+    return attributes.default[0]
+  return attributes.default
+
+
+getValues = (valueElement) ->
+  return [] unless valueElement.element is 'enum'
+  return ({value} for value in valueElement.toValue())
