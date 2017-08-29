@@ -150,6 +150,9 @@ fixtures =
   preferSample: fixture(
     apiBlueprint: fromFile('./api-blueprint/prefer-sample.apib')
   )
+  httpHeadersMultiple: fixture(
+    apiBlueprint: fromFile('./api-blueprint/http-headers-multiple.apib')
+  )
 
   # Specific to Swagger
   produces: fixture(
