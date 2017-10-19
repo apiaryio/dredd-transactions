@@ -16,31 +16,22 @@ describe('compile() · Swagger', ->
       )
     )
 
-    it('is compiled into zero transactions', ->
-      assert.deepEqual(compilationResult.transactions, [])
+    it('produces one annotation and no transaction', ->
+      assert.jsonSchema(compilationResult, createCompilationResultSchema(
+        annotations: 1
+        transactions: 0
+      ))
     )
-    it('is compiled with no warnings', ->
-      assert.deepEqual(compilationResult.warnings, [])
-    )
-    it('is compiled with a single error', ->
-      assert.equal(compilationResult.errors.length, 1)
-    )
-    context('the error', ->
-      it('comes from parser', ->
-        assert.equal(compilationResult.errors[0].component, 'apiDescriptionParser')
+    context('the annotation', ->
+      it('is error', ->
+        assert.equal(compilationResult.annotations[0].type, 'error')
       )
-      it('has code', ->
-        assert.isNumber(compilationResult.errors[0].code)
+      it('comes from the parser', ->
+        assert.equal(compilationResult.annotations[0].component, 'apiDescriptionParser')
       )
       it('has message', ->
-        assert.include(compilationResult.errors[0].message.toLowerCase(), 'no corresponding')
-        assert.include(compilationResult.errors[0].message.toLowerCase(), 'in the path string')
-      )
-      it('has no location', ->
-        assert.isUndefined(compilationResult.errors[0].location)
-      )
-      it('has no origin', ->
-        assert.isUndefined(compilationResult.errors[0].origin)
+        assert.include(compilationResult.annotations[0].message.toLowerCase(), 'no corresponding')
+        assert.include(compilationResult.annotations[0].message.toLowerCase(), 'in the path string')
       )
     )
   )
@@ -55,22 +46,28 @@ describe('compile() · Swagger', ->
       )
     )
 
-    it('is compiled with no warnings', ->
-      assert.deepEqual(compilationResult.warnings, [])
+    it('produces no annotations and two transactions', ->
+      assert.jsonSchema(compilationResult, createCompilationResultSchema(
+        annotations: 0
+        transactions: 3
+      ))
     )
-    it('is compiled with no errors', ->
-      assert.deepEqual(compilationResult.errors, [])
-    )
-    context('compiles a transaction', ->
-      it('with expected request headers', ->
-        assert.deepEqual(compilationResult.transactions[0].request.headers, {
-          'Accept': {value: 'application/json'}
-        })
-      )
-      it('with expected response headers', ->
-        assert.deepEqual(compilationResult.transactions[0].response.headers, {
-          'Content-Type': {value: 'application/json'}
-        })
+    [
+      {accept: 'application/json', contentType: 'application/json'}
+      {accept: 'application/xml', contentType: 'application/xml'}
+      {accept: 'application/json', contentType: 'text/plain'}
+    ].forEach(({accept, contentType}, i) ->
+      context("compiles a transaction for the '#{contentType}' media type", ->
+        it('with expected request headers', ->
+          assert.deepEqual(compilationResult.transactions[i].request.headers, {
+            'Accept': {value: accept}
+          })
+        )
+        it('with expected response headers', ->
+          assert.deepEqual(compilationResult.transactions[i].response.headers, {
+            'Content-Type': {value: contentType}
+          })
+        )
       )
     )
   )
@@ -85,20 +82,26 @@ describe('compile() · Swagger', ->
       )
     )
 
-    it('is compiled with no warnings', ->
-      assert.deepEqual(compilationResult.warnings, [])
+    it('produces no annotations and three transactions', ->
+      assert.jsonSchema(compilationResult, createCompilationResultSchema(
+        annotations: 0
+        transactions: 3
+      ))
     )
-    it('is compiled with no errors', ->
-      assert.deepEqual(compilationResult.errors, [])
-    )
-    context('compiles a transaction', ->
-      it('with expected request headers', ->
-        assert.deepEqual(compilationResult.transactions[0].request.headers, {
-          'Content-Type': {value: 'application/json'}
-        })
-      )
-      it('with expected response headers', ->
-        assert.deepEqual(compilationResult.transactions[0].response.headers, {})
+    [
+      'application/json'
+      'application/xml'
+      'application/json'
+    ].forEach((mediaType, i) ->
+      context("compiles a transaction for the '#{mediaType}' media type", ->
+        it('with expected request headers', ->
+          assert.deepEqual(compilationResult.transactions[i].request.headers, {
+            'Content-Type': {value: mediaType}
+          })
+        )
+        it('with expected response headers', ->
+          assert.deepEqual(compilationResult.transactions[i].response.headers, {})
+        )
       )
     )
   )
@@ -117,17 +120,14 @@ describe('compile() · Swagger', ->
       )
     )
 
-    it('does not call detection of transaction examples', ->
+    it('does not call the detection of transaction examples', ->
       assert.isFalse(detectTransactionExampleNumbers.called)
     )
-    it('returns expected number of transactions', ->
-      assert.equal(compilationResult.transactions.length, expectedStatusCodes.length)
-    )
-    it('is compiled with no warnings', ->
-      assert.deepEqual(compilationResult.warnings, [])
-    )
-    it('is compiled with no errors', ->
-      assert.deepEqual(compilationResult.errors, [])
+    it("produces no annotations and #{expectedStatusCodes.length} transactions", ->
+      assert.jsonSchema(compilationResult, createCompilationResultSchema(
+        annotations: 0
+        transactions: expectedStatusCodes.length
+      ))
     )
 
     for statusCode, i in expectedStatusCodes
@@ -161,14 +161,11 @@ describe('compile() · Swagger', ->
       )
     )
 
-    it('is compiled with no warnings', ->
-      assert.deepEqual(compilationResult.warnings, [])
-    )
-    it('is compiled with no errors', ->
-      assert.deepEqual(compilationResult.errors, [])
-    )
-    it('returns expected number of transactions', ->
-      assert.deepEqual(compilationResult.transactions.length, 2)
+    it('produces no annotations and 2 transactions', ->
+      assert.jsonSchema(compilationResult, createCompilationResultSchema(
+        annotations: 0
+        transactions: 2
+      ))
     )
   )
 
@@ -182,14 +179,11 @@ describe('compile() · Swagger', ->
       )
     )
 
-    it('is compiled with no warnings', ->
-      assert.deepEqual(compilationResult.warnings, [])
-    )
-    it('is compiled with no errors', ->
-      assert.deepEqual(compilationResult.errors, [])
-    )
-    it('returns expected number of transactions', ->
-      assert.deepEqual(compilationResult.transactions.length, 1)
+    it('produces no annotations and 1 transaction', ->
+      assert.jsonSchema(compilationResult, createCompilationResultSchema(
+        annotations: 0
+        transactions: 1
+      ))
     )
   )
 
