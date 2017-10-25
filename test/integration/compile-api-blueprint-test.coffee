@@ -3,15 +3,11 @@ proxyquire = require('proxyquire').noPreserveCache()
 sinon = require('sinon')
 
 fixtures = require('../fixtures')
-createLocationSchema = require('../schemas/location')
-createOriginSchema = require('../schemas/origin')
+createCompilationResultSchema = require('../schemas/compilation-result')
 {assert, compileFixture} = require('../utils')
 
 
 describe('compile() · API Blueprint', ->
-  locationSchema = createLocationSchema()
-  originSchema = createOriginSchema()
-
   describe('causing a \'missing title\' warning', ->
     compilationResult = undefined
 
@@ -22,31 +18,22 @@ describe('compile() · API Blueprint', ->
       )
     )
 
-    it('is compiled into zero transactions', ->
-      assert.deepEqual(compilationResult.transactions, [])
+    it('produces one annotation and no transaction', ->
+      assert.jsonSchema(compilationResult, createCompilationResultSchema(
+        annotations: 1
+        transactions: 0
+      ))
     )
-    it('is compiled with one warning', ->
-      assert.equal(compilationResult.warnings.length, 1)
-    )
-    context('the warning', ->
-      it('comes from parser', ->
-        assert.equal(compilationResult.warnings[0].component, 'apiDescriptionParser')
+    context('the annotation', ->
+      it('is warning', ->
+        assert.equal(compilationResult.annotations[0].type, 'warning')
       )
-      it('has code', ->
-        assert.isNumber(compilationResult.warnings[0].code)
+      it('comes from the parser', ->
+        assert.equal(compilationResult.annotations[0].component, 'apiDescriptionParser')
       )
       it('has message', ->
-        assert.include(compilationResult.warnings[0].message.toLowerCase(), 'expected api name')
+        assert.include(compilationResult.annotations[0].message.toLowerCase(), 'expected api name')
       )
-      it('has location', ->
-        assert.jsonSchema(compilationResult.warnings[0].location, locationSchema)
-      )
-      it('has no origin', ->
-        assert.isUndefined(compilationResult.warnings[0].origin)
-      )
-    )
-    it('is compiled with no errors', ->
-      assert.deepEqual(compilationResult.errors, [])
     )
   )
 
@@ -63,32 +50,23 @@ describe('compile() · API Blueprint', ->
       )
     )
 
-    it('is compiled into expected number of transactions', ->
-      assert.equal(compilationResult.transactions.length, 1)
+    it('produces one annotation and one transaction', ->
+      assert.jsonSchema(compilationResult, createCompilationResultSchema(
+        annotations: 1
+        transactions: 1
+      ))
     )
-    it('is compiled with a single warning', ->
-      assert.equal(compilationResult.warnings.length, 1)
-    )
-    context('the warning', ->
-      it('comes from parser', ->
-        assert.equal(compilationResult.warnings[0].component, 'apiDescriptionParser')
+    context('the annotation', ->
+      it('is warning', ->
+        assert.equal(compilationResult.annotations[0].type, 'warning')
       )
-      it('has code', ->
-        assert.isNumber(compilationResult.warnings[0].code)
+      it('comes from the parser', ->
+        assert.equal(compilationResult.annotations[0].component, 'apiDescriptionParser')
       )
       it('has message', ->
-        assert.include(compilationResult.warnings[0].message.toLowerCase(), 'not found within')
-        assert.include(compilationResult.warnings[0].message.toLowerCase(), 'uri template')
+        assert.include(compilationResult.annotations[0].message.toLowerCase(), 'not found within')
+        assert.include(compilationResult.annotations[0].message.toLowerCase(), 'uri template')
       )
-      it('has location', ->
-        assert.jsonSchema(compilationResult.warnings[0].location, locationSchema)
-      )
-      it('has no origin', ->
-        assert.isUndefined(compilationResult.warnings[0].origin)
-      )
-    )
-    it('is compiled with no errors', ->
-      assert.deepEqual(compilationResult.errors, [])
     )
   )
 
@@ -109,11 +87,14 @@ describe('compile() · API Blueprint', ->
       )
     )
 
-    it('detection of transaction examples was called', ->
+    it('calls the detection of transaction examples', ->
       assert.isTrue(detectTransactionExampleNumbers.called)
     )
-    it('is compiled into expected number of transactions', ->
-      assert.equal(compilationResult.transactions.length, expected.length)
+    it("produces no annotations and #{expected.length} transactions", ->
+      assert.jsonSchema(compilationResult, createCompilationResultSchema(
+        annotations: 0
+        transactions: expected.length
+      ))
     )
     for expectations, i in expected
       do (expectations, i) ->
@@ -139,12 +120,6 @@ describe('compile() · API Blueprint', ->
             )
           )
         )
-    it('is compiled with no warnings', ->
-      assert.deepEqual(compilationResult.warnings, [])
-    )
-    it('is compiled with no errors', ->
-      assert.deepEqual(compilationResult.errors, [])
-    )
   )
 
   describe('without multiple transaction examples', ->
@@ -159,11 +134,14 @@ describe('compile() · API Blueprint', ->
       )
     )
 
-    it('detection of transaction examples was called', ->
+    it('calls the detection of transaction examples', ->
       assert.isTrue(detectTransactionExampleNumbers.called)
     )
-    it('is compiled into one transaction', ->
-      assert.equal(compilationResult.transactions.length, 1)
+    it('produces no annotations and one transaction', ->
+      assert.jsonSchema(compilationResult, createCompilationResultSchema(
+        annotations: 0
+        transactions: 1
+      ))
     )
     context('the transaction', ->
       it("is identified as part of no example in \'origin\'", ->
@@ -172,12 +150,6 @@ describe('compile() · API Blueprint', ->
       it("is identified as part of Example 1 in \'pathOrigin\'", ->
         assert.equal(compilationResult.transactions[0].pathOrigin.exampleName, 'Example 1')
       )
-    )
-    it('is compiled with no warnings', ->
-      assert.deepEqual(compilationResult.warnings, [])
-    )
-    it('is compiled with no errors', ->
-      assert.deepEqual(compilationResult.errors, [])
     )
   )
 
@@ -192,11 +164,11 @@ describe('compile() · API Blueprint', ->
       )
     )
 
-    it('is compiled with no warnings', ->
-      assert.deepEqual(compilationResult.warnings, [])
-    )
-    it('is compiled with no errors', ->
-      assert.deepEqual(compilationResult.errors, [])
+    it('produces no annotations and two transactions', ->
+      assert.jsonSchema(compilationResult, createCompilationResultSchema(
+        annotations: 0
+        transactions: 2
+      ))
     )
     context('action within a resource', ->
       it('has URI inherited from the resource', ->
@@ -227,11 +199,11 @@ describe('compile() · API Blueprint', ->
       )
     )
 
-    it('is compiled with no warnings', ->
-      assert.deepEqual(compilationResult.warnings, [])
-    )
-    it('is compiled with no errors', ->
-      assert.deepEqual(compilationResult.errors, [])
+    it('produces no annotations and one transaction', ->
+      assert.jsonSchema(compilationResult, createCompilationResultSchema(
+        annotations: 0
+        transactions: 1
+      ))
     )
     context('\'origin\'', ->
       it('uses filename as API name', ->
@@ -273,11 +245,11 @@ describe('compile() · API Blueprint', ->
       )
     )
 
-    it('is compiled with no warnings', ->
-      assert.deepEqual(compilationResult.warnings, [])
-    )
-    it('is compiled with no errors', ->
-      assert.deepEqual(compilationResult.errors, [])
+    it('produces no annotations and one transaction', ->
+      assert.jsonSchema(compilationResult, createCompilationResultSchema(
+        annotations: 0
+        transactions: 1
+      ))
     )
     it('expands the request URI using the sample value', ->
       assert.equal(compilationResult.transactions[0].request.uri, '/honey?beekeeper=Pavan')
