@@ -7,3 +7,6 @@ set -e # aborts as soon as anything returns non-zero exit status
 
 git fetch --unshallow
 ./node_modules/.bin/commitlint --from=master --to="$TRAVIS_COMMIT"
+
+
+# woo hoo
