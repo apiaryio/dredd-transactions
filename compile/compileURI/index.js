@@ -31,12 +31,9 @@ module.exports = function compileURI(httpRequestElement) {
     .filter(hrefParam => !!hrefParam)
     .pop();
 
-  // Support for 'httpRequest' parameters is experimental. The element does
-  // not have the '.hrefVariables' convenience property yet. If it's added in
-  // the future, '.attributes.get('hrefVariables')' can be replaced
-  // with '.hrefVariables'.
+  // Support for 'httpRequest' parameters is experimental.
   const params = cascade
-    .map(element => compileParams(element.attributes.get('hrefVariables')))
+    .map(element => compileParams(element.hrefVariables))
     .reduce(overrideParams, {});
 
   let result = validateParams(params);
